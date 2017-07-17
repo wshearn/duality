@@ -122,11 +122,12 @@ namespace Duality.Editor.Forms
 					string.Format(GeneralRes.Msg_PublishConfirmDeleteTargetDir_Desc, Path.GetFileName(targetDir)), 
 					GeneralRes.Msg_PublishConfirmDeleteTargetDir_Caption, 
 					MessageBoxButtons.OKCancel, 
-					MessageBoxIcon.Warning) == DialogResult.OK);
+					MessageBoxIcon.Warning) == DialogResult.OK,
+				checkboxIncludeBaseDir.Checked);
 			this.Close();
 		}
 
-		public static void PublishProject(string targetDir, bool includeSource, bool includeEditor, bool compress, bool createShortcuts, Func<string,bool> targetExistsCallback = null)
+		public static void PublishProject(string targetDir, bool includeSource, bool includeEditor, bool compress, bool createShortcuts, Func<string,bool> targetExistsCallback = null, bool compressBaseDir = false)
 		{
 			// Determine a valid directory name for the game
 			string gameDirName = PathOp.GetValidFileName(DualityApp.AppData.AppName);
@@ -219,11 +220,7 @@ namespace Duality.Editor.Forms
 			if (compress)
 			{
 				string archivePath = Path.Combine(targetDir, gameDirName + ".zip");
-				using (FileStream archiveStream = File.Open(archivePath, FileMode.Create))
-				using (ZipArchive archive = new ZipArchive(archiveStream, ZipArchiveMode.Create))
-				{
-					archive.AddDirectory(archiveBaseDir);
-				}
+				ZipFile.CreateFromDirectory(archiveBaseDir, archivePath, CompressionLevel.Optimal, compressBaseDir);
 				Directory.Delete(archiveBaseDir, true);
 
 				// Display compressed file to the user
